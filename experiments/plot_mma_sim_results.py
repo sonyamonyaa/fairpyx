@@ -20,6 +20,9 @@ def multi_multi_plot_results(results_csv_file: str, save_to_file_template: str, 
 
 
 def plot_results_mma():
+    """
+    comparison plots between the two algorithms
+    """
     filter = {"num_of_agents": 3,
               "algorithm": [
                   "divide_and_choose_for_three", "alloc_by_matching",
@@ -37,6 +40,9 @@ def plot_results_mma():
 
 
 def plot_results_all_on_three():
+    """
+    comparison plots between divide and choose and the rest in the library
+    """
     filter = {"num_of_agents": 3,
               "num_of_items": [250, 500, 750, 1000],
               "algorithm": [
@@ -59,6 +65,9 @@ def plot_results_all_on_three():
 
 
 def plot_results_all_on_any():
+    """
+    comparison plots between alloc by matching and the rest in the library
+    """
     filter = {"num_of_items": [250, 500, 750, 1000],
               "algorithm": [
                   "alloc_by_matching",
