@@ -1,10 +1,10 @@
 from experiments_csv import multi_plot_results
 
+
 def multi_multi_plot_results(results_csv_file: str, save_to_file_template: str, filter: dict,
                              x_field: str, y_fields: list[str], z_field: str, mean: bool,
                              subplot_field: str, subplot_rows: int, subplot_cols: int, sharey: bool, sharex: bool,
                              legend_properties: dict):
-    # todo: redo for better legend
     for y_field in y_fields:
         save_to_file = save_to_file_template.format(y_field)
         print(y_field, save_to_file)
@@ -27,7 +27,7 @@ def plot_results_mma():
               "algorithm": [
                   "divide_and_choose_for_three", "alloc_by_matching",
               ]}
-    y_fields = ["utilitarian_value", "egalitarian_value", "egalitarian_utilitarian_ratio",
+    y_fields = ["utilitarian_value", "egalitarian_value",  # "egalitarian_utilitarian_ratio",
                 "mean_envy", "runtime"]
     multi_multi_plot_results(
         results_csv_file="results/mma_comparison.csv",
@@ -52,7 +52,8 @@ def plot_results_all_on_three():
                   "round_robin", "bidirectional_round_robin"
               ]}
 
-    y_fields = ["egalitarian_utilitarian_ratio",
+    y_fields = ["utilitarian_value", "egalitarian_value",
+                # "egalitarian_utilitarian_ratio",
                 "mean_envy", "runtime"]
     multi_multi_plot_results(
         results_csv_file="results/mma_comparison.csv",
@@ -75,7 +76,8 @@ def plot_results_all_on_any():
                   "almost_egalitarian_without_donation", "almost_egalitarian_with_donation",
                   "round_robin", "bidirectional_round_robin"
               ]}
-    y_fields = ["egalitarian_utilitarian_ratio",
+    y_fields = ["utilitarian_value", "egalitarian_value",
+                # "egalitarian_utilitarian_ratio",
                 "mean_envy", "runtime"]
     multi_multi_plot_results(
         results_csv_file="results/mma_comparison.csv",
@@ -88,6 +90,6 @@ def plot_results_all_on_any():
 
 
 if __name__ == "__main__":
-    # plot_results_mma()
-    # plot_results_all_on_three()
+    plot_results_mma()
+    plot_results_all_on_three()
     plot_results_all_on_any()

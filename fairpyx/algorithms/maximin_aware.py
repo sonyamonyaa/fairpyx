@@ -8,7 +8,6 @@ Since: 2024-05
 Disclaimer: all algorithms are on additive valuations
  """
 import logging
-import sys
 
 import networkz as nx
 from prtpy import partition, objectives as obj, outputtypes as out
@@ -17,6 +16,36 @@ from prtpy.partitioning import integer_programming
 from fairpyx import Instance, AllocationBuilder, divide, ExplanationLogger, AgentBundleValueMatrix
 
 logger = logging.getLogger(__name__)
+
+from functools import wraps
+import time
+
+# Dictionary to store accumulated execution times for functions
+execution_times = {}
+
+
+def timer(orig_func):
+    @wraps(orig_func)
+    def wrapper(*args, **kwargs):
+        # Start time
+        t1 = time.time()
+        result = orig_func(*args, **kwargs)
+        # Calculate the elapsed time
+        t2 = time.time() - t1
+
+        # Update the accumulated time for the function
+        if orig_func.__name__ in execution_times:
+            execution_times[orig_func.__name__] += t2
+        else:
+            execution_times[orig_func.__name__] = t2
+
+        # Print the current run time and the accumulated total time
+        print(f'{orig_func.__name__} ran in: {t2:.6f} sec')
+        print(f'Total accumulated time for {orig_func.__name__}: {execution_times[orig_func.__name__]:.6f} sec')
+
+        return result
+
+    return wrapper
 
 
 def divide_and_choose_for_three(alloc: AllocationBuilder, explanation_logger: ExplanationLogger = ExplanationLogger()):
@@ -114,7 +143,7 @@ def divide_and_choose_for_three(alloc: AllocationBuilder, explanation_logger: Ex
     def _(code: str):
         return TEXT[code][explanation_logger.language]
 
-    check_no_capacities(alloc.instance, algo_prefix="divide and choose: ") # check that capacites are not used.
+    check_no_capacities(alloc.instance, algo_prefix="divide and choose: ")  # check that capacites are not used.
 
     agents = list(alloc.remaining_agents())
     if len(agents) != 3:
@@ -377,7 +406,7 @@ def approx_leximin_partition(valuation: dict, n: int = 3, result: out.OutputType
     return prt
 
 
-def get_bundle_rankings(agent_bundle_value:callable, agent, bundles: list) -> list:
+def get_bundle_rankings(agent_bundle_value: callable, agent, bundles: list) -> list:
     """
     checks the ranking of bundles according to agent's preferences
     :param instance: the current instance
@@ -401,7 +430,7 @@ def get_bundle_rankings(agent_bundle_value:callable, agent, bundles: list) -> li
     return ranking
 
 
-def is_significant_2nd_bundle(agent_bundle_value:callable, agent, bundles: list) -> bool:
+def is_significant_2nd_bundle(agent_bundle_value: callable, agent, bundles: list) -> bool:
     """
     checks the significance of the second priority bundle of an agent
 
@@ -479,7 +508,7 @@ def create_envy_graph(instance: Instance, allocation: dict,
 
 
 def envy_reduction_procedure(alloc: dict[str, list], instance: Instance,
-                             explanation_logger: ExplanationLogger = ExplanationLogger())->list:
+                             explanation_logger: ExplanationLogger = ExplanationLogger()) -> list:
     """
     Procedure P for algo. 2: builds an envy graph from a given allocation, finds and reduces envy cycles.
     i.e. allocations with envy-cycles should and would be fixed here.
@@ -595,12 +624,13 @@ def maximum_matching(instance: Instance, agents: list, items: list):
 
 
 if __name__ == "__main__":
-    import doctest
-    print("\n", doctest.testmod(), "\n")
+    # import doctest
+    # print("\n", doctest.testmod(), "\n")
     # sys.exit()
 
     from fairpyx import ConsoleExplanationLogger
     from fairpyx.adaptors import divide_random_instance
+
     console_explanation_logger = ConsoleExplanationLogger()
 
     # inst = Instance(
@@ -624,17 +654,16 @@ if __name__ == "__main__":
     #                 "Claire": [2, 8, 8, 7]})
     # alloc = divide(alloc_by_matching, inst, explanation_logger=console_explanation_logger)
 
-    inst = Instance(  # exemplifies an envy-cycle
-        valuations={"Alice": [57, 34, 22, 19, 14, 6], 
-                    "Bob": [59, 34, 26, 17, 14, 2]})
-    alloc = divide(alloc_by_matching, inst, explanation_logger=console_explanation_logger)
+    # inst = Instance(  # exemplifies an envy-cycle
+    #     valuations={"Alice": [57, 34, 22, 19, 14, 6],
+    #                 "Bob": [59, 34, 26, 17, 14, 2]})
+    # alloc = divide(alloc_by_matching, inst, explanation_logger=console_explanation_logger)
 
-
-    # num_of_agents = 3
-    # num_of_items = 19
-    # divide_random_instance(algorithm=alloc_by_matching, 
-    #                        num_of_agents=num_of_agents, num_of_items=num_of_items, 
-    #                        agent_capacity_bounds=[num_of_items,num_of_items], item_capacity_bounds=[1,1], 
-    #                        item_base_value_bounds=[1,100], item_subjective_ratio_bounds=[0.5,1.5], normalized_sum_of_values=1000,
-    #                        explanation_logger=console_explanation_logger,
-    #                        random_seed=2)
+    num_of_agents = 25
+    num_of_items = 2000
+    rand_inst = Instance.random_uniform(num_of_agents=num_of_agents, num_of_items=num_of_items,
+                                        agent_capacity_bounds=[num_of_items, num_of_items], item_capacity_bounds=[1, 1],
+                                        item_base_value_bounds=[1, 1000], item_subjective_ratio_bounds=[1, 1],
+                                        normalized_sum_of_values=1000,
+                                        random_seed=3)
+    divide(alloc_by_matching, rand_inst)

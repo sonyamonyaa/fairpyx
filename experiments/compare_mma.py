@@ -11,9 +11,10 @@ from typing import *
 
 import numpy as np
 
+import fairpyx.algorithms as crs
 from fairpyx import divide, AgentBundleValueMatrix, Instance
 from fairpyx.algorithms import maximin_aware
-import fairpyx.algorithms as crs
+
 max_value = 1000
 normalized_sum_of_values = 1000
 TIME_LIMIT = 30
@@ -28,23 +29,25 @@ other_algorithms = [
     crs.almost_egalitarian_with_donation
 ]
 algorithms_to_check_on_three = [
-    maximin_aware.divide_and_choose_for_three,
-    maximin_aware.alloc_by_matching
-] + other_algorithms
+                                   maximin_aware.divide_and_choose_for_three,
+                                   maximin_aware.alloc_by_matching
+                               ] + other_algorithms
 
-algorithms_to_check_on_any = [maximin_aware.alloc_by_matching]  + other_algorithms
+algorithms_to_check_on_any = [maximin_aware.alloc_by_matching] + other_algorithms
 
 
 def evaluate_algorithm_on_instance(algorithm, instance):
     allocation = divide(algorithm, instance)
     matrix = AgentBundleValueMatrix(instance, allocation)
     # deficit is based on agent capacity, which isn't defined in our case
-    capacity_error = instance.num_of_items - np.ceil(instance.num_of_items / instance.num_of_agents)
+    true_capacity = np.ceil(instance.num_of_items / instance.num_of_agents)
+    capacity_error = instance.num_of_items - true_capacity
+    # normalization_adjust = 1 / instance.num_of_agents
     matrix.use_normalized_values()
     return {
-        "utilitarian_value": matrix.utilitarian_value(),
-        "egalitarian_value": matrix.egalitarian_value(),
-        "egalitarian_utilitarian_ratio": matrix.egalitarian_value()/matrix.utilitarian_value(),
+        "utilitarian_value": matrix.utilitarian_value() * instance.num_of_agents,
+        "egalitarian_value": matrix.egalitarian_value() * instance.num_of_agents,
+        # "egalitarian_utilitarian_ratio": matrix.egalitarian_value()/matrix.utilitarian_value(),
         "max_envy": matrix.max_envy(),
         "mean_envy": matrix.mean_envy(),
         "max_deficit": matrix.max_deficit() - capacity_error,
@@ -75,7 +78,7 @@ def item_allocation_with_random_instance_uniform(
 
 def run_experiment_on_three():
     # Run on uniformly-random data:
-    experiment = experiments_csv.Experiment("results/", "mma_comparison.csv",
+    experiment = experiments_csv.Experiment("results/", "mma_comparison2.csv",
                                             backup_folder="results/backup/")
     # experiment.clear_previous_results()
     input_ranges = {
@@ -90,7 +93,7 @@ def run_experiment_on_three():
 
 def run_experiment_on_any():
     # Run on uniformly-random data:
-    experiment = experiments_csv.Experiment("results/", "mma_comparison.csv",
+    experiment = experiments_csv.Experiment("results/", "mma_comparison2.csv",
                                             backup_folder="results/backup/")
     # experiment.clear_previous_results()
     input_ranges = {
